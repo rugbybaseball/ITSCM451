@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Change Enablement Agent</title>
+  <link rel="stylesheet" href="garcia-style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Change Enablement Agent</h1>
+      <p class="subtitle">Brandt Garcia — ITSCM 451</p>
+    </header>
+
+    <form id="change-form">
+      <div class="form-group">
+        <label for="change-description">Change Description</label>
+        <textarea id="change-description" rows="4" placeholder="Describe the proposed IT change..." required></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="affected-system">Affected System</label>
+        <select id="affected-system" required>
+          <option value="" disabled selected>Select a system</option>
+          <option value="ERP / SAP">ERP / SAP</option>
+          <option value="Customer Portal">Customer Portal</option>
+          <option value="Payment Gateway">Payment Gateway</option>
+          <option value="Internal CI/CD Pipeline">Internal CI/CD Pipeline</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Is the service currently down?</label>
+        <div class="radio-group">
+          <label class="radio-label">
+            <input type="radio" name="service-down" value="yes" required>
+            <span>Yes</span>
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="service-down" value="no" required>
+            <span>No</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Is this a pre-approved change model?</label>
+        <div class="radio-group">
+          <label class="radio-label">
+            <input type="radio" name="pre-approved" value="yes" required>
+            <span>Yes</span>
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="pre-approved" value="no" required>
+            <span>No</span>
+          </label>
+        </div>
+      </div>
+
+      <button type="submit" id="classify-btn">Classify Change</button>
+    </form>
+
+    <!-- Results Section -->
+    <section id="results" class="results hidden">
+
+      <!-- Classification -->
+      <div class="result-card">
+        <h2>Classification</h2>
+        <p class="classification-badge" id="classification-badge"></p>
+        <p class="classification-desc" id="classification-desc"></p>
+      </div>
+
+      <!-- Risk Assessment (Normal changes only) -->
+      <div id="risk-section" class="result-card hidden">
+        <h2>Risk Assessment</h2>
+        <p class="section-note">Adjust each dimension on a 1–5 scale, then recalculate.</p>
+
+        <div class="slider-group">
+          <label>
+            <span class="dim-name">Impact Scope</span>
+            <span class="dim-hint">1 = Single non-critical component — 5 = Multiple critical business services</span>
+            <input type="range" min="1" max="5" value="3" class="risk-slider" data-dimension="impact">
+            <span class="slider-value">3</span>
+          </label>
+        </div>
+
+        <div class="slider-group">
+          <label>
+            <span class="dim-name">Complexity</span>
+            <span class="dim-hint">1 = Single config change — 5 = Multi-system orchestrated deployment</span>
+            <input type="range" min="1" max="5" value="3" class="risk-slider" data-dimension="complexity">
+            <span class="slider-value">3</span>
+          </label>
+        </div>
+
+        <div class="slider-group">
+          <label>
+            <span class="dim-name">Reversibility</span>
+            <span class="dim-hint">1 = Instant automated rollback — 5 = Irreversible (data migration, schema)</span>
+            <input type="range" min="1" max="5" value="3" class="risk-slider" data-dimension="reversibility">
+            <span class="slider-value">3</span>
+          </label>
+        </div>
+
+        <div class="slider-group">
+          <label>
+            <span class="dim-name">Testing Confidence</span>
+            <span class="dim-hint">1 = Full automated test coverage — 5 = No test environment available</span>
+            <input type="range" min="1" max="5" value="3" class="risk-slider" data-dimension="testing">
+            <span class="slider-value">3</span>
+          </label>
+        </div>
+
+        <div class="slider-group">
+          <label>
+            <span class="dim-name">Deployment History</span>
+            <span class="dim-hint">1 = Identical change succeeded 10x — 5 = First-of-its-kind change</span>
+            <input type="range" min="1" max="5" value="3" class="risk-slider" data-dimension="history">
+            <span class="slider-value">3</span>
+          </label>
+        </div>
+
+        <div class="slider-group">
+          <label>
+            <span class="dim-name">Timing Sensitivity</span>
+            <span class="dim-hint">1 = Off-peak, low-traffic window — 5 = Peak hours, month-end, launch day</span>
+            <input type="range" min="1" max="5" value="3" class="risk-slider" data-dimension="timing">
+            <span class="slider-value">3</span>
+          </label>
+        </div>
+
+        <div class="slider-group">
+          <label>
+            <span class="dim-name">Dependency Count</span>
+            <span class="dim-hint">1 = Zero external dependencies — 5 = 5+ teams / external vendors involved</span>
+            <input type="range" min="1" max="5" value="3" class="risk-slider" data-dimension="dependencies">
+            <span class="slider-value">3</span>
+          </label>
+        </div>
+
+        <button type="button" id="recalc-btn">Recalculate Risk</button>
+
+        <div class="risk-result">
+          <p>Composite Score: <strong id="composite-score">3.0</strong></p>
+          <p>Risk Tier: <span class="risk-tier-badge" id="risk-tier">Medium</span></p>
+        </div>
+      </div>
+
+      <!-- Approval Path -->
+      <div id="approval-section" class="result-card hidden">
+        <h2>Recommended Approval Path</h2>
+        <ol id="approval-steps"></ol>
+      </div>
+
+      <!-- Risk Mitigation Checklist -->
+      <div id="checklist-section" class="result-card hidden">
+        <h2>Risk Mitigation Checklist</h2>
+        <ul class="checklist" id="mitigation-checklist">
+          <li>
+            <label><input type="checkbox"> <strong>Rollback plan:</strong> Documented, tested, estimated duration</label>
+          </li>
+          <li>
+            <label><input type="checkbox"> <strong>Validation criteria:</strong> How will you confirm the change succeeded?</label>
+          </li>
+          <li>
+            <label><input type="checkbox"> <strong>Monitoring:</strong> Dashboards/alerts configured for affected services</label>
+          </li>
+          <li>
+            <label><input type="checkbox"> <strong>Communication plan:</strong> Stakeholders notified, maintenance window published</label>
+          </li>
+          <li>
+            <label><input type="checkbox"> <strong>Fallback contacts:</strong> On-call engineers identified for escalation</label>
+          </li>
+        </ul>
+      </div>
+    </section>
+  </div>
+
+  <script src="garcia-logic.js"></script>
+</body>
+</html>
